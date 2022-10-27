@@ -13,7 +13,7 @@ class JSD_loss(nn.Module):
         return torch.max(W*torch.sqrt((1./2.)*self.kl(p,m)+(1./2.)*self.kl(q,m)))
     
     def forward(self, ps,qs, Ws=None):
-        if not Ws:
+        if Ws is None:
             Ws = torch.ones(len(ps))
         
         losses_commutativity = 0.

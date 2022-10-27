@@ -2,9 +2,12 @@ import torch
 import torch.nn as nn
 
 class BinaryLinear(nn.Module):
-    def __init__(self, in_dim, out_dim, T):
+    def __init__(self, in_dim, out_dim, T, initialised=None):
         super(BinaryLinear, self).__init__()
-        self.weight = nn.Parameter(torch.randn((in_dim, out_dim)))
+        if type(initialised) == type(None):
+            self.weight = nn.Parameter(torch.randn((in_dim, out_dim)))
+        else:
+            self.weight = nn.Parameter(initialised)
         self.T = T
     
     def binarize_weights(self):

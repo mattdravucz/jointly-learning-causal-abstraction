@@ -1,5 +1,6 @@
 
 import src.utils as ut
+import src.evaluationsets as es
 
 from src.nn_layers import BinaryLinear
 from src.SCMMappings_1_1 import Abstraction
@@ -9,7 +10,7 @@ import torch.nn as nn
 
 
 class JointNeuralNet(nn.Module):
-    def __init__(self, M0, M1, R, a, J, T=0.1, frozen_alphas={}):
+    def __init__(self, M0, M1, R, a, J, T=0.1, frozen_alphas={}, initialised_alphas={}):
         super(JointNeuralNet, self).__init__()
         
         self.M0 = M0
@@ -18,6 +19,7 @@ class JointNeuralNet(nn.Module):
         self.a = a
         self.A = Abstraction(self.M0,self.M1,self.R,self.a)
         self.frozen_alphas = frozen_alphas
+        self.initialised_alphas = initialised_alphas
         
         self.T = T
         
@@ -44,7 +46,10 @@ class JointNeuralNet(nn.Module):
         
         self.layers = nn.ModuleList()
         for key, value in self.alpha_dims.items():
-            self.layers.append(BinaryLinear(value[1], value[0], self.T))
+            if key in self.initialised_alphas:
+                self.layers.append(BinaryLinear(value[1], value[0], self.T, self.initialised_alphas[key]))
+            else:
+                self.layers.append(BinaryLinear(value[1], value[0], self.T))
             self.alpha_index[key] = len(self.layers)-1    
     
     def get_Wmatrix_by_name(self,alphakey):
@@ -85,7 +90,6 @@ class JointNeuralNet(nn.Module):
                 else:
                     left_alpha_matrices.append( self.frozen_alphas[name] )
             left_abstraction = self.tensorize_list(None,left_alpha_matrices)
-            
             low_path = torch.matmul(low_mechanism, left_abstraction)
             lower_distrib.append(low_path)
         
